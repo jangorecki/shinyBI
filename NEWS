@@ -1,6 +1,10 @@
+shinyBI 0.2.2
+==============
+* fixed paths to appDir and example DT
+
 shinyBI 0.2.1
 ==============
-* minor docs fixes
+* minor doc fixes
 
 shinyBI 0.2
 ==============

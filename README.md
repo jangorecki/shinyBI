@@ -1,11 +1,21 @@
 # shinyBI
 
-shinyBI is an R package which delivers simple Business Intelligence platform.
+shinyBI is R package which delivers simple Business Intelligence platform as `shiny` application.
+
+User can load own dataset, perform pivot process utilizing the performance of `data.table`, plot a chart on pivot results utilizing interactivity of `rCharts`.
 
 ## Installation
 
 ```R
-devtools::install_github('shinyBI', 'jangorecki')
+library(devtools)
+install_github("shinyBI", "jangorecki")
+```
+
+## Usage
+
+```R
+library(shinyBI)
+shinyBI()
 ```
 
 ## Documentation

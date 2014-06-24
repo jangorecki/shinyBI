@@ -36,8 +36,8 @@ translation <- function(x){
 
 # load cran logs data
 exampleDT <- function(){
-  #DT <- readRDS(paste(system.file("data",package="shinyBI"),"cran_logs.rds",sep="/"))
-  DT <- readRDS("../../data/cran_logs.rds")
+  DT <- readRDS(paste(system.file("data",package="shinyBI"),"cran_logs.rds",sep="/"))
+  #DT <- readRDS("../../data/cran_logs.rds")
   #DT <- readRDS("data/cran_logs.rds")
   datelt <- as.POSIXlt(DT[,unique(date)])
   time_dim <- data.table(

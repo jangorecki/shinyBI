@@ -25,6 +25,6 @@ NULL
 #' }
 shinyBI <- function(..., appDir = NULL){
   if(!is.null(appDir)) warning("shinyBI function do not allow to pass the appDir argument to runApp function, it will be omitted", immediate. = TRUE)
-  #runApp(appDir = system.file("shinyBI", package="shinyBI"), ...)
-  runApp(appDir = "inst/shinyBI", ...)
+  runApp(appDir = system.file("shinyBI", package="shinyBI"), ...)
+  #runApp(appDir = "inst/shinyBI", ...)
 }
