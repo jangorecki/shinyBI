@@ -1,3 +1,7 @@
+shinyBI 0.2.1
+==============
+* minor docs fixes
+
 shinyBI 0.2
 ==============
 * change pivot apply function process for speedup

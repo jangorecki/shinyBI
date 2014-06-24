@@ -17,4 +17,4 @@ As shinyBI app author I'm also providing ETL and BI related tasks as a service:
  - support
  - open license (shinyBI built on components which licenses allows **free commercial use**, extended licenses available)
 
-Contact at: `jan.gorecki@candf.com`
+Contact at: `j.gorecki@wit.edu.pl`
