@@ -1,0 +1,5 @@
+Basic package information available in DESCRIPTION file.
+Install in R by:
+> devtools::install_github('shinyBI', 'jangorecki')
+Run shinyApp and read in-App documentation:
+> shinyBI::shinyBI()

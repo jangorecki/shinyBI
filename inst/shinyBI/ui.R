@@ -10,13 +10,13 @@ shinyUI(
              includeMarkdown("pivot.md"),
              fluidPage(
                sidebarLayout(
-                 sidebarPanel(
+                 sidebarPanel(width=3,
                    textInput("iRowSubset", label = "filters", value = ""),
                    selectizeInput("iSelectRows", label = "rows", choices = translation(names(DT)), multiple = TRUE),
                    #selectizeInput("iSelectCols", label = "columns", choices = translation(names(DT)), multiple = TRUE),
                    selectizeInput("iSelectVals", label = "measures", choices = translation(names(DT)), multiple = TRUE),
-                   selectizeInput("iSelectFuns", label = "functions", choices = translation(funs), multiple = TRUE),
-                   actionButton("iPivot", "refresh"),br(),
+                   selectizeInput("iSelectFuns", label = "functions", choices = translation(fPivotDict), multiple = TRUE),
+                   actionButton("iPivot", "pivot"),br(),
                    br(),
                    checkboxInput("iNAomit", label = "NA omit", value = TRUE), 
                    checkboxInput("iUnique", label = "distinct", value = FALSE),
@@ -36,19 +36,20 @@ shinyUI(
                    selectizeInput("iXaxis", label = "X axis", choices = NULL, multiple = F),
                    selectizeInput("iYaxis", label = "Y axis", choices = NULL, multiple = F),
                    selectizeInput("iGroups", label = "groups", choices = NULL, multiple = F),
-                   checkboxInput("iPlotLogY", label = "log Y", value = FALSE), 
+                   #br(),
+                   #selectizeInput("iYfun", label = "non-aggr FUN(Y)", choices = translation(fPlotDict), multiple = F),
+                   #checkboxInput("iYkeep", label = "keep Y values", value = FALSE), 
+                   #checkboxInput("iPlotLogY", label = "log Y", value = FALSE), 
                    br(),
                    actionButton("iPlot", "plot"),br(),
                    br(),
                    verbatimTextOutput("rPlotInRows"),
                    verbatimTextOutput("rPlotProcTime")
                  ),
-                 mainPanel(plotOutput("rPlot"))
+                 mainPanel(
+                   chartOutput("rPlot", "nvd3")
+                   )
                )
-             )),
-    tabPanel("report",
-             includeMarkdown("report.md")
-             #,downloadButton("rPDF", label = "download PDF", class = NULL)
-             )
+             ))
   )
 )

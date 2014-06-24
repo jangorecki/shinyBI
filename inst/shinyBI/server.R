@@ -1,25 +1,39 @@
-# generic function to apply vector of functions (funs) on list of measures (sd) while performing pivot, NA will be omitted
-xapply <- function(sd, funs, na.rm, ...){
-  if(length(sd) > 1 & length(funs)==1) funs <- rep(funs,length(sd)) #repeat one aggreate function for all measures
-  if(length(sd)!=length(funs)) stop("you should provide as much functions as values provided or only one function to apply on all measures")
-  nms <- names(sd)
-  r <- lapply(1:length(sd), FUN = function(i, ...){
-    tryCatch({
-      fun <- match.fun(funs[[i]])
-      if("na.rm" %in% names(as.list(args(fun)))){
-        fun(sd[[i]], na.rm = na.rm)
-      } else if(!("na.rm" %in% names(as.list(args(fun))))){
-        fun(sd[[i]])
-      } else{
-        stop(paste("error on 'na.rm' argument check in target function",funs[[i]]))
-      }
-    }, error = function(e){
-      paste(c(as.character(e$call,e$message), collapse=": "))
-    })
-  }, sd = sd, funs = funs, na.rm = na.rm)
-  names(r) <- paste(nms,funs,sep=".")
-  r
+# generic function to apply vector of functions (funs) on list of measures (sd) while performing pivot
+mxapply <- function(SDcols,funs,na.rm){
+  if(length(SDcols) > 1 & length(funs)==1) funs <- rep(funs,length(SDcols)) #repeat one aggreate function for all measures
+  if(length(SDcols)!=length(funs)) stop("you should provide as much functions as values provided or only one function to apply on all measures")
+  optNA <- ifelse(fNAs[funs],paste0(", na.rm=",na.rm),"")
+  ffuns <- paste0(funs,"(",SDcols,optNA,")")
+  listBody <- paste(SDcols,ffuns,sep="=")
+  jjText <- sprintf('list(%s)', paste(listBody, collapse = ', ')) 
+  # lapply and mapply was not scalling as well as expression
+  jj <- as.quoted(jjText)[[1]]
+  jj
 }
+
+# character to factor to plot on X axis - this will be useful if: https://github.com/ramnathv/rCharts/issues/452
+# fCharX <- function(DT, colX, typeX){
+#   if(!("character" %in% typeX)) return(DT) 
+#   DT[,.SD][, eval(colX) := lapply(.SD, as.factor), .SDcols = colX]
+# }
+
+fPlotXchar <- function(DT, colX, typeX){
+  if("character" %in% typeX){
+    return(DT[,.SD
+              ][order(eval(as.quoted(colX)[[1]]))
+                ][, eval(colX) := lapply(.SD, function(x) as.integer(as.factor(x))), .SDcols = colX
+                  ])
+  }
+  return(DT)
+}
+# fPlotXcharLab <- function(DT, colX, typeX){
+#   if("character" %in% typeX){
+#     return(DT[,.SD,,.SDcols=colX
+#               ][order(eval(as.quoted(colX)[[1]]))
+#                 ][[eval(colX)]])
+#   }
+#   return(DT[,eval(colX),with=FALSE])
+# }
 
 shinyServer(function(input, output, session) {
   # source
@@ -28,7 +42,7 @@ shinyServer(function(input, output, session) {
   # pivot
   fPivot <- reactive({
     input$iPivot
-    if(input$iPivot == 0) return()
+    if(input$iPivot == 0) return(NULL)
     isolate({
       # input check
       started.at <- proc.time()
@@ -38,11 +52,11 @@ shinyServer(function(input, output, session) {
       #input$iSelectCols
       
       # aggregate
+      jj <- mxapply(SDcols = eval(input$iSelectVals),funs = eval(input$iSelectFuns),na.rm = eval(input$iNAomit))
       rDT <- DT[tryCatch(expr = eval(row.subset),
-                         error = function(e) stop(paste0("Provided filter expression results error: ",paste(as.character(c(e$call,e$message)),collapse=": ")))),
-                xapply(sd = .SD, funs = eval(input$iSelectFuns), na.rm = eval(input$iNAomit)),
-                keyby = eval(input$iSelectRows),
-                .SDcols = eval(input$iSelectVals)]
+                         error = function(e) stop(paste0("Provided filter expression results error: ",paste(as.character(c(e$call,e$message)),collapse=": ")), call.=FALSE)),
+                eval(jj),
+                keyby = eval(input$iSelectRows)]
       
       # deduplicate
       if(input$iUnique) rDT <- unique(rDT)
@@ -58,7 +72,7 @@ shinyServer(function(input, output, session) {
   }) # fPivot
   output$rPivotInRows <- renderText(sprintf("Input rows: %1.0f", attr(fPivot(), "rPivotInRows", exact=T)))
   output$rPivotOutRows <- renderText(sprintf("Output rows: %1.0f", attr(fPivot(), "rPivotOutRows", exact=T)))
-  output$rPivotProcTime <- renderText(sprintf("Seconds elapsed: %1.3f",attr(fPivot(), "rPivotProcTime", exact=T)))
+  output$rPivotProcTime <- renderText(sprintf("Elapsed secs: %1.3f",attr(fPivot(), "rPivotProcTime", exact=T)))
   output$rPivot <- renderDataTable({fPivot()}, options = list(aLengthMenu = list(c(15, 25, 50, 100, -1), c('15', '25', '50', '100', 'All')), iDisplayLength = 15))
   
   # plot
@@ -70,40 +84,55 @@ shinyServer(function(input, output, session) {
   }) # updateSelectizeInput
   fPlot <- reactive({
     input$iPlot
-    if(input$iPlot == 0) return()
+    validate(
+      need(input$iPlot > 0, "Define the plot")
+    )
     isolate({
+      # input check
       started.at <- proc.time()
-      rgg <- ggplot(data = fPivot(), environment=environment())
-      rgg <- rgg + ggtitle(paste0("shinyBI plot: ",eval(input$iYaxis)," by ",eval(input$iXaxis)))
-      if(is(fPivot()[[eval(input$iYaxis)]],"Date") | is.character(fPivot()[[eval(input$iYaxis)]]) | is.factor(fPivot()[[eval(input$iYaxis)]])){
-        #message(paste("plot Y as frequency",paste("x",input$iXaxis,sep="="),paste("y",input$iYaxis,sep="="),paste("group",input$iGroups,sep="="),sep=", "))
-        if(input$iGroups=="") rgg <- rgg + geom_bar(aes_string(x = eval(input$iXaxis), y = eval(input$iYaxis), group = 1), stat="identity")
-        else rgg <- rgg + geom_bar(aes_string(x = eval(input$iXaxis), y = eval(input$iYaxis), colour = eval(input$iGroups), group = eval(input$iGroups)), stat="identity")
-      }
-      else if(is.numeric(fPivot()[[eval(input$iYaxis)]])){
-        #message(paste("plot Y as value",paste("x",input$iXaxis,sep="="),paste("y",input$iYaxis,sep="="),paste("group",input$iGroups,sep="="),sep=", "))
-        if(input$iGroups=="") rgg <- rgg + geom_line(aes_string(x = eval(input$iXaxis), y = eval(input$iYaxis), group = 1))
-        else rgg <- rgg + geom_line(aes_string(x = eval(input$iXaxis), y = eval(input$iYaxis), colour = eval(input$iGroups), group = eval(input$iGroups)))
-      }
-      else stop(paste0("X axis data type unsupported on plot"))
-      if(eval(input$iPlotLogY)){
-        rgg <- rgg + scale_y_log10()
-      }
-      rgg <- rgg + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+      grp <- if(input$iGroups == "") NULL else eval(input$iGroups)
+      # lowest granularity check
+      inGranularityCheck <- nrow(fPivot()[,unique(.SD), .SDcols=c(eval(input$iXaxis),grp)])
+      if(nrow(fPivot()) > inGranularityCheck) stop(paste0("Plot is possible only on lowest granularity data from pivot results, go back to pivot and remove any 'rows' fields not used in plotting X axis or groups"))
       
-      # describe
-      setattr(rgg,"rPlotInRows",nrow(fPivot()))
-      setattr(rgg,"rPlotProcTime",timetaken(started.at, num=TRUE))      
-      rgg
-    })
+      typeX <- class(fPivot()[0][[input$iXaxis]])
+      typeY <- class(fPivot()[0][[input$iYaxis]])
+      
+      # non-aggr funs
+      # runmean(1:1000,k=30,endrule="NA",align="right"),
+      #fNonAggrApply <- function(DT){ DT }
+      
+      # def vars
+      #browser()
+      p <- nPlot(x = input$iXaxis, y = input$iYaxis, group = grp, data = fPlotXchar(DT = fPivot(), colX = input$iXaxis, typeX = typeX),
+                 type = "lineChart")
+
+      # X axis format
+      if("Date" %in% typeX){
+        p$xAxis(tickFormat="#!function(d) {return d3.time.format.utc('%b %Y')(new Date( d * 86400000 ));}!#")
+      } else if("character" %in% typeX){
+        # not read, waiting for: https://github.com/ramnathv/rCharts/issues/452
+        invisible()
+        #p$xAxis(tickValues=fPlotXcharLab(DT = fPivot(), colX = input$iXaxis, typeX = typeX))
+        #p$xAxis(tickLabels=fPlotXcharLab(DT = fPivot(), colX = input$iXaxis, typeX = typeX))
+      }
+      # "#!function(d) { var dataset = ['Build Array from data']; return dataset; }!#"
+      
+      # axis labels
+      p$xAxis(axisLabel = names(translation(input$iXaxis)))
+      p$yAxis(axisLabel = names(translation(input$iYaxis)))
+      
+      # p$chart(useInteractiveGuideline=TRUE) # laggy on small dt?
+      p$addParams(dom = "rPlot")
+      
+      # description
+      setattr(p,"rPlotInRows",nrow(fPivot()))
+      setattr(p,"rPlotProcTime",timetaken(started.at, num=TRUE))      
+      p
+    }) # end isolation
   }) # fPlot
   output$rPlotInRows <- renderText(sprintf("Input rows: %1.0f", attr(fPlot(), "rPlotInRows", exact=T)))
-  output$rPlotProcTime <- renderText(sprintf("Seconds elapsed: %1.3f",attr(fPlot(), "rPlotProcTime", exact=T)))
-  output$rPlot <- renderPlot(print(fPlot()))
-  
-  # report
-  #output$rPDF <- downloadHandler(filename = paste("shinyBI_report.pdf", content = function() render("input.Rmd", "pdf_document"), contentType = "application/pdf")
+  output$rPlotProcTime <- renderText(sprintf("Elapsed secs: %1.3f",attr(fPlot(), "rPlotProcTime", exact=T)))
+  output$rPlot <- renderChart(fPlot())
   
 })
-
-# runApp()

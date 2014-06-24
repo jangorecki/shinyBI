@@ -1,0 +1,11 @@
+shinyBI 0.2
+==============
+* change pivot apply function process for speedup
+* add rCharts
+* some docs
+* many minor fixes
+
+shinyBI 0.1
+==============
+* init package build
+* core app
