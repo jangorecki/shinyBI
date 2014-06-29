@@ -1,18 +1,18 @@
 Package: shinyBI
 Type: Package
 Title: Business Intelligence shinyApp
-Version: 0.2.2
-Date: 2014-06-24
+Version: 0.3
+Date: 2014-06-29
 Author: Jan Gorecki
 Maintainer: Jan Gorecki <j.gorecki@wit.edu.pl>
 Depends:
     data.table
 Imports:
-    plyr,
     shiny,
     rCharts,
+    plyr,
     markdown
-Description: Perform BI on provided data.
+Description: Perform simple BI on provided data.
 License: GPL-3
 URL: https://github.com/jangorecki/shinyBI
 BugReports: https://github.com/jangorecki/shinyBI/issues

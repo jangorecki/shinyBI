@@ -15,7 +15,7 @@ shinyUI(
                    selectizeInput("iSelectRows", label = "rows", choices = translation(names(DT)), multiple = TRUE),
                    #selectizeInput("iSelectCols", label = "columns", choices = translation(names(DT)), multiple = TRUE),
                    selectizeInput("iSelectVals", label = "measures", choices = translation(names(DT)), multiple = TRUE),
-                   selectizeInput("iSelectFuns", label = "functions", choices = translation(fPivotDict), multiple = TRUE),
+                   selectizeInput("iSelectFuns", label = "functions", choices = translation(fPivotFunDict), multiple = TRUE),
                    actionButton("iPivot", "pivot"),br(),
                    br(),
                    checkboxInput("iNAomit", label = "NA omit", value = TRUE), 
@@ -23,7 +23,9 @@ shinyUI(
                    br(),
                    verbatimTextOutput("rPivotInRows"),
                    verbatimTextOutput("rPivotOutRows"),
-                   verbatimTextOutput("rPivotProcTime")
+                   verbatimTextOutput("rPivotProcTime"),
+                   br(),
+                   downloadButton("csvPivot", label = "Download .csv")
                  ),
                  mainPanel(dataTableOutput("rPivot"))
                )
@@ -36,18 +38,15 @@ shinyUI(
                    selectizeInput("iXaxis", label = "X axis", choices = NULL, multiple = F),
                    selectizeInput("iYaxis", label = "Y axis", choices = NULL, multiple = F),
                    selectizeInput("iGroups", label = "groups", choices = NULL, multiple = F),
-                   #br(),
-                   #selectizeInput("iYfun", label = "non-aggr FUN(Y)", choices = translation(fPlotDict), multiple = F),
-                   #checkboxInput("iYkeep", label = "keep Y values", value = FALSE), 
-                   #checkboxInput("iPlotLogY", label = "log Y", value = FALSE), 
-                   br(),
+                   selectizeInput("iPlotType", label = "type", choices = translation(fPlotTypeDict), multiple = F),
+                   checkboxInput("iInteractiveGuideline", label = "interactive guideline", value = FALSE), 
                    actionButton("iPlot", "plot"),br(),
                    br(),
                    verbatimTextOutput("rPlotInRows"),
                    verbatimTextOutput("rPlotProcTime")
                  ),
                  mainPanel(
-                   chartOutput("rPlot", "nvd3")
+                   showOutput("rPlot", "nvd3")
                    )
                )
              ))

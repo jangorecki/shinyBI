@@ -1,9 +1,11 @@
-shinyBI 0.2.2
+shinyBI 0.3
 ==============
-* fixed paths to appDir and example DT
-
-shinyBI 0.2.1
-==============
+* added different types of plot
+* X axis character type auto conversion
+* code reorganization
+* changed sample CRAN logs dataset
+* fixed minor issues related to shiny
+* fixed paths to appDir
 * minor doc fixes
 
 shinyBI 0.2

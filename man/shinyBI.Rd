@@ -6,7 +6,7 @@
 shinyBI(..., appDir = NULL)
 }
 \arguments{
-\item{...}{params to be passed to \code{\link{runApp}}. Excluding code{appDir} argument.}
+\item{...}{params to be passed to \code{\link{runApp}}. Excluding \code{appDir} argument.}
 
 \item{appDir}{param will be omitted and not passed to \code{runApp}.}
 }
@@ -23,6 +23,6 @@ In case of no DT object provided the example data will be loaded. Example data a
 }
 }
 \references{
-\link{http://cran-logs.rstudio.com/}
+\url{http://cran-logs.rstudio.com/}
 }
 

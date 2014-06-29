@@ -7,6 +7,6 @@
 shinyBI package
 }
 \references{
-\link{https://github.com/jangorecki/shinyBI}
+\url{https://github.com/jangorecki/shinyBI}
 }
 

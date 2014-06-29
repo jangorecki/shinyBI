@@ -1,7 +1,7 @@
 Source data
 ========================================================
 
-To load source data to **shinyBI** you should create `data.table` object named `DT` before `shinyBI()` call. You should already convert fields to appropriate data types. In case of using *binary search* `data.table` feature in pivot you need also setkey on `DT`. Factor fields were not tested, you may use character type instead.  If no `DT` `data.table` object will be prepared before `shinyBI()` call app will use example data of CRAN rstudio mirror logs.
+To load source data to **shinyBI** you should create `data.table` object named `DT` before `shinyBI()` call. You should already convert fields to appropriate data types. In case of using *binary search* `data.table` feature in pivot you need also setkey on `DT`. Factor fields were not tested, you may use character type instead.  If no `DT` `data.table` object will be prepared before `shinyBI()` call then app will use sample dataset of RStudio CRAN mirror logs (617k rows).
 
 1. Load data from csv:
 
