@@ -1,5 +1,0 @@
-shinyBI is on GPL-3 or commercial.
-Dependencies used in the shinyBI app are on the various licenses, all used in the app are free for commercial use. There are some javascript libraries availabile through rCharts package which are not free for commercial use, they were not used in shinyBI.
-
-YEAR: 2014
-COPYRIGHT HOLDER: Jan Gorecki
