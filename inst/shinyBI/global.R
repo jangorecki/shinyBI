@@ -39,7 +39,7 @@ if(!exists("DT")){
 # shinyBI funs ------------------------------------------------------------
 
 #' @title mxapply
-#' @description Build quoted expression to apply provided aggregate functions on provided columns.
+#' @description Build quoted expression to apply provided aggregate functions on provided columns. Created this way due to lapply and mapply were not scalling as well as direct evaluated expression.
 #' @keywords internal
 mxapply <- function(SDcols,funs,na.rm){
   if(length(SDcols) > 1 & length(funs)==1) funs <- rep(funs,length(SDcols)) #repeat one aggreate function for all measures
@@ -48,7 +48,7 @@ mxapply <- function(SDcols,funs,na.rm){
   ffuns <- paste0(funs,"(",SDcols,optNA,")")
   listBody <- paste(SDcols,ffuns,sep="=")
   jjText <- sprintf('list(%s)', paste(listBody, collapse = ', ')) 
-  # lapply and mapply was not scalling as well as direct evaluated expression
+  # lapply and mapply were not scalling as well as direct evaluated expression
   jj <- as.quoted(jjText)[[1]]
   jj
 }
@@ -64,35 +64,43 @@ timetaken <- function(started.at, units = "secs", num = FALSE, precision = 3){
 }
 
 #' @title nxPlot
-#' @description Run nPlot but first prepare data types of x, y, grp.
+#' @description Run nPlot with already prepared data types of x, y, grp and format axis after plotting.
 #' @keywords internal
 nxPlot <- function(x, y, group, data, type){
   typeX <- class(data[0][[x]])
   typeY <- class(data[0][[y]])
   if(!is.null(group)) typeGRP <- class(data[0][[group]])
+  
   # order, clean X na
   colX <- x
   data <- setorderv(x = data[!is.na(get(colX)),.SD], cols = colX)
-  # data types converter
-  data <- switch(type,
-                 "lineChart" = if("character" %in% typeX) data[, eval(colX) := lapply(.SD, FUN = function(x) as.integer(as.factor(x))), .SDcols = colX] else data,
-                 "scatterChart" = if("character" %in% typeX) data[, eval(colX) := lapply(.SD, FUN = function(x) as.integer(as.factor(x))), .SDcols = colX] else data,
-                 "multiBarChart" = data,
-                 "lineWithFocusChart" = if("character" %in% typeX) data[, eval(colX) := lapply(.SD, FUN = function(x) as.integer(as.factor(x))), .SDcols = colX] else data,
-                 "multiBarHorizontalChart" = data, 
-                 stop("Unsupported plot type"))  
+  
+  # data types: pre plot
+  
+  if("character" %in% typeX){
+    if(type %in% c("lineChart","scatterChart","lineWithFocusChart")){
+      tickLabels <- unique(data[[x]])
+      data[, eval(colX) := lapply(.SD, FUN = function(x) as.integer(as.factor(x))), .SDcols = colX]
+    }
+  }
+  
+  # plot
   p <- nPlot(x = x, y = y, group = group, data = data, type = type)
-  # X axis format
-  if("Date" %in% typeX){
+  
+  # data types: post plot
+  if("character" %in% typeX){
+    if(type %in% c("lineChart","scatterChart","lineWithFocusChart")){
+      p$xAxis(tickFormat = sprintf(
+        "#! function(d){return [%s'][d-1]} !#",
+        paste("'",tickLabels,sep="",collapse="',")
+      ))
+      p$xAxis(tickValues = data[[colX]])
+    }
+  }
+  else if("Date" %in% typeX){
     p$xAxis(tickFormat="#!function(d) {return d3.time.format.utc('%b %Y')(new Date( d * 86400000 ));}!#")
-  } else if("character" %in% typeX){
-    # add labels on X axis not ready, waiting for: https://github.com/ramnathv/rCharts/issues/452
-    invisible()
   }
-  # Y axis format
-  if(any(c("numeric","integer") %in% typeY)){
-    p$yAxis(tickFormat = "#! function(d) {return d3.format(',.0f')(d)} !#")
-  }
+  p$xAxis(staggerLabels = TRUE)
   # axis labels
   p$xAxis(axisLabel = names(translation(x)))
   p$yAxis(axisLabel = names(translation(y)))

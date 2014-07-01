@@ -1,7 +1,7 @@
 shinyBI 0.3
 ==============
 * added different types of plot
-* X axis character type auto conversion
+* X axis character type auto conversion + labels
 * code reorganization
 * changed sample CRAN logs dataset
 * fixed minor issues related to shiny
