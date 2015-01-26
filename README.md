@@ -1,4 +1,8 @@
-# shinyBI
+# shinyBI moved
+
+Project is no longer active but still usable. I've made similar shiny app, it is faster and focused on hierarchical / dimensional data. It is available in [dwtools](https://github.com/jangorecki/dwtools) package.
+
+# shinyBI: proof of concept - up to [Jul 1, 2014](https://github.com/jangorecki/shinyBI/commit/7b2d72be49771ccece3bcef22c09d7a31583c568).
 
 shinyBI is R package which delivers simple Business Intelligence platform as `shiny` application.
 
